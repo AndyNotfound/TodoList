@@ -21,9 +21,34 @@ function findItem(todoId){
     return null;
 }
 
+function findIndex(todoId) {
+    for (const i in todos) {
+        if (todos[i].id === todoId) {
+        return i;
+        }
+    }
+    return -1;
+}
+
 // Generating an ID
 function generateId(){
     return +new Date();
+}
+
+// Deleting the task from the list
+function deleteTask(todoId){
+    const todoTarget = findIndex(todoId);
+    if (todoTarget == -1) return;
+    todos.splice(todoTarget, 1);
+    document.dispatchEvent(new Event(RENDER_EVENT));
+}
+
+// Moving task or undoing them 
+function undoTask (todoId){
+    const todoTarget = findItem(todoId);
+    if (todoTarget == null) return;
+    todoTarget.stats = false;
+    document.dispatchEvent(new Event(RENDER_EVENT));
 }
 
 // Marking the task as complete
@@ -110,11 +135,16 @@ document.addEventListener(RENDER_EVENT, () => {
     // The uncompleted task todos wrapper
     const uncomplete = document.getElementById('todos');
     uncomplete.innerHTML = '';
+    // The completed task todos wrapper
+    const completed = document.getElementById('completed-todos');
+    completed.innerHTML = '';
     // Iterating through the todos array, passing them to make a todo item and appending them to the wrapper
     for (let todo of todos){
         todoElem = makeTodo(todo);
         if (!todo.stats){
             uncomplete.append(todoElem);
+        } else {
+            completed.append(todoElem)
         }
     }
 })
