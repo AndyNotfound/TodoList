@@ -1,5 +1,7 @@
 let todos = [];
 const RENDER_EVENT = 'render-todo';
+const SAVED_EVENT = 'saved-todo';
+const TODO_TASK = 'TODO_APPS';
 
 // Creating a new object with the value passed
 function generateTodoObject(id, text, time, stats){
@@ -21,6 +23,7 @@ function findItem(todoId){
     return null;
 }
 
+// Iterarung through the todo list to find an index
 function findIndex(todoId) {
     for (const i in todos) {
         if (todos[i].id === todoId) {
@@ -35,12 +38,43 @@ function generateId(){
     return +new Date();
 }
 
+// Checking if the browser support web storage
+function supportWebStorage (){
+    if(typeof(Storage) === undefined){
+        alert("your browser doesn't support web storage");
+        return false;
+    }
+    return true;
+}
+
+// Saving data to the local storage
+function saveData (){
+    if(supportWebStorage()){
+        const parsed = JSON.stringify(todos);
+        localStorage.setItem(TODO_TASK, parsed);
+    }
+}
+
+// Getting data from the local storage
+function loadData (){
+    const data = localStorage.getItem(TODO_TASK);
+    let localData = JSON.parse(data);
+
+    if(localData !== null){
+        for (let data of localData){
+            todos.push(data);
+        }
+    }
+    document.dispatchEvent(new Event(RENDER_EVENT));
+}
+
 // Deleting the task from the list
 function deleteTask(todoId){
     const todoTarget = findIndex(todoId);
     if (todoTarget == -1) return;
     todos.splice(todoTarget, 1);
     document.dispatchEvent(new Event(RENDER_EVENT));
+    saveData();
 }
 
 // Moving task or undoing them 
@@ -49,6 +83,7 @@ function undoTask (todoId){
     if (todoTarget == null) return;
     todoTarget.stats = false;
     document.dispatchEvent(new Event(RENDER_EVENT));
+    saveData();
 }
 
 // Marking the task as complete
@@ -57,6 +92,7 @@ function completeTask (todoId){
     if (todoTarget == null) return;
     todoTarget.stats = true;
     document.dispatchEvent(new Event(RENDER_EVENT));
+    saveData();
 }
 
 // Making the todo list
@@ -118,6 +154,7 @@ function addTodo (){
     todos.push(todoObject);
     
     document.dispatchEvent(new Event(RENDER_EVENT));
+    saveData();
 }
 
 // This event will occur after all DOM loaded
@@ -128,6 +165,10 @@ document.addEventListener('DOMContentLoaded',() => {
         e.preventDefault();
         addTodo();
     });
+
+    if(supportWebStorage()){
+        loadData();
+    }
 })
 
 // Custom event to render the todo list
